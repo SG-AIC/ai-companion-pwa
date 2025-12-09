@@ -72,6 +72,12 @@
         .animate-pulse {
             animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
+
+        /* Menu Overlay */
+        .menu-overlay {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
     </style>
 </head>
 <body class="h-screen overflow-hidden">
@@ -96,6 +102,59 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
                 </button>
+            </div>
+        </div>
+
+        <!-- Menu Sidebar -->
+        <div id="menu-sidebar" class="fixed inset-0 z-50 hidden">
+            <div class="menu-overlay absolute inset-0" id="menu-overlay"></div>
+            <div class="absolute right-0 top-0 bottom-0 w-72 bg-white shadow-2xl transform transition-transform safe-area-top">
+                <div class="p-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-bold text-gray-900">Menü</h2>
+                        <button id="close-menu-btn" class="p-2 hover:bg-gray-100 rounded-lg">
+                            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <nav class="p-4 space-y-2">
+                    <a href="/" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-purple-50 text-purple-700 font-medium">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                        <span>Chat</span>
+                    </a>
+                    
+                    <a href="/accounts.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 text-gray-700 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>Accounts</span>
+                    </a>
+                    
+                    <a href="#" onclick="syncEmails(); return false;" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 text-gray-700 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span>Emails synchronisieren</span>
+                    </a>
+                    
+                    <div class="pt-4 border-t border-gray-200 mt-4">
+                        <div id="sync-status" class="px-4 py-2 text-sm text-gray-500">
+                            <!-- Sync status wird hier angezeigt -->
+                        </div>
+                    </div>
+                </nav>
+                
+                <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 safe-area-bottom">
+                    <div class="text-xs text-gray-500 text-center">
+                        AI Companion v1.0<br>
+                        Made with ❤️
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -198,12 +257,10 @@
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            
-            // Show custom install prompt (for Android)
             document.getElementById('install-prompt').classList.remove('hidden');
         });
 
-        // iOS Install Prompt (Safari doesn't support beforeinstallprompt)
+        // iOS Install Prompt
         function isIOS() {
             return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
         }
@@ -212,11 +269,57 @@
             return ('standalone' in window.navigator) && (window.navigator.standalone);
         }
 
-        // Show iOS install prompt if not installed
         if (isIOS() && !isInStandaloneMode()) {
             setTimeout(() => {
                 document.getElementById('install-prompt').classList.remove('hidden');
-            }, 3000); // Show after 3 seconds
+            }, 3000);
+        }
+
+        // ============================================================================
+        // MENU FUNCTIONALITY
+        // ============================================================================
+        
+        function openMenu() {
+            document.getElementById('menu-sidebar').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeMenu() {
+            document.getElementById('menu-sidebar').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        
+        document.getElementById('menu-btn').addEventListener('click', openMenu);
+        document.getElementById('close-menu-btn').addEventListener('click', closeMenu);
+        document.getElementById('menu-overlay').addEventListener('click', closeMenu);
+
+        // ============================================================================
+        // SYNC EMAILS
+        // ============================================================================
+        
+        async function syncEmails() {
+            const statusEl = document.getElementById('sync-status');
+            statusEl.innerHTML = '<div class="flex items-center gap-2"><div class="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div><span>Synchronisiere...</span></div>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/sync/emails`, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer test' }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusEl.innerHTML = `<div class="text-green-600">✅ ${data.emails_synced} Emails synchronisiert!</div>`;
+                    setTimeout(() => {
+                        statusEl.innerHTML = '';
+                    }, 3000);
+                } else {
+                    throw new Error(data.detail || 'Sync failed');
+                }
+            } catch (error) {
+                statusEl.innerHTML = `<div class="text-red-600">❌ Fehler: ${error.message}</div>`;
+            }
         }
 
         // ============================================================================
@@ -234,9 +337,10 @@
                 const statusEl = document.getElementById('auth-status');
                 
                 if (data.authenticated) {
-                    const email = data.user_email || 'Microsoft 365';
+                    const email = data.primary_email || 'Microsoft 365';
                     const shortEmail = email.length > 25 ? email.substring(0, 22) + '...' : email;
-                    statusEl.innerHTML = `<span class="text-green-600">●</span> ${shortEmail}`;
+                    const accountCount = data.total_accounts || 1;
+                    statusEl.innerHTML = `<span class="text-green-600">●</span> ${shortEmail} (${accountCount} Account${accountCount > 1 ? 's' : ''})`;
                 } else {
                     statusEl.innerHTML = `<a href="${API_BASE_URL}/auth/login" class="text-blue-600 hover:underline">Verbinden →</a>`;
                 }
@@ -282,7 +386,6 @@
             messageDiv.appendChild(bubble);
             container.appendChild(messageDiv);
             
-            // Scroll to bottom with smooth animation
             setTimeout(() => {
                 const messagesEl = document.getElementById('messages');
                 messagesEl.scrollTo({
@@ -291,7 +394,6 @@
                 });
             }, 100);
             
-            // Hide quick actions after first user message
             if (messages.filter(m => m.role === 'user').length > 0) {
                 document.getElementById('quick-actions').style.display = 'none';
             }
@@ -313,11 +415,9 @@
             addMessage('user', message);
             input.value = '';
             
-            // Disable input while loading
             input.disabled = true;
             document.getElementById('send-btn').disabled = true;
             
-            // Loading indicator
             const loadingDiv = document.createElement('div');
             loadingDiv.id = 'loading';
             loadingDiv.className = 'flex justify-start message-fade-in';
@@ -346,7 +446,6 @@
                 
                 const data = await response.json();
                 
-                // Remove loading
                 loadingDiv.remove();
                 
                 if (response.ok) {
@@ -379,9 +478,6 @@
                     document.getElementById('message-input').value = transcript;
                     isListening = false;
                     updateVoiceButton();
-                    
-                    // Auto-send after voice input (optional)
-                    // sendMessage();
                 };
                 
                 recognition.onerror = (event) => {
@@ -447,10 +543,6 @@
         });
         
         document.getElementById('voice-btn').addEventListener('click', toggleVoice);
-        
-        document.getElementById('menu-btn').addEventListener('click', () => {
-            alert('Menu coming soon!\n\n✓ Einstellungen\n✓ Email Browser\n✓ Sync Status');
-        });
 
         // ============================================================================
         // INITIALIZE
