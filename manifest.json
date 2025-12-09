@@ -1,0 +1,58 @@
+{
+  "name": "AI Companion",
+  "short_name": "Companion",
+  "description": "Dein persönlicher AI-Companion für Emails, Kalender und mehr",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7c3aed",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "lifestyle"],
+  "screenshots": [
+    {
+      "src": "/screenshot.png",
+      "sizes": "1170x2532",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Neue Nachricht",
+      "short_name": "Chat",
+      "description": "Starte eine neue Conversation",
+      "url": "/#chat",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Emails checken",
+      "short_name": "Emails",
+      "description": "Wichtige Emails anzeigen",
+      "url": "/#emails",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}
