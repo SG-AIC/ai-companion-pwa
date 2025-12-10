@@ -318,7 +318,9 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/sync/emails`, {
                     method: 'POST',
-                    headers: { 'Authorization': 'Bearer test' }
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
                 });
 
                 const data = await response.json();
@@ -343,7 +345,9 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/sync/calendar`, {
                     method: 'POST',
-                    headers: { 'Authorization': 'Bearer test' }
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
                 });
 
                 const data = await response.json();
@@ -474,12 +478,12 @@
                 const response = await fetch(`${API_BASE_URL}/chat`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer test'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         message: message,
-                        use_email_context: true
+                        use_email_context: true,
+                        use_calendar_context: true
                     })
                 });
                 
