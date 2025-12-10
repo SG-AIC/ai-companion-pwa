@@ -510,26 +510,38 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    mode: 'cors',
+                    credentials: 'include',
                     body: JSON.stringify({
                         message: message,
                         use_email_context: true,
                         use_calendar_context: true
                     })
                 });
-                
-                const data = await response.json();
-                
+
                 loadingDiv.remove();
-                
-                if (response.ok) {
-                    addMessage('assistant', data.response, data.sources);
-                } else {
-                    addMessage('assistant', `❌ ${data.detail || 'Fehler beim Senden'}`);
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }));
+                    throw new Error(errorData.detail || `Request failed with status ${response.status}`);
                 }
+
+                const data = await response.json();
+                addMessage('assistant', data.response, data.sources);
             } catch (error) {
                 loadingDiv.remove();
-                addMessage('assistant', '❌ Verbindung zum Backend fehlgeschlagen. Bist du online?');
-                console.error('Error:', error);
+                console.error('Chat error:', error);
+
+                let errorMsg = '❌ ';
+                if (error.message.includes('Failed to fetch')) {
+                    errorMsg += 'Backend nicht erreichbar. Railway deployt gerade die neue Version - bitte warte 2-3 Minuten und versuche es erneut.';
+                } else if (error.message.includes('authenticate first')) {
+                    errorMsg += 'Bitte erst bei Microsoft 365 anmelden!';
+                } else {
+                    errorMsg += error.message || 'Verbindung fehlgeschlagen';
+                }
+
+                addMessage('assistant', errorMsg);
             } finally {
                 input.disabled = false;
                 document.getElementById('send-btn').disabled = false;
