@@ -144,11 +144,18 @@
                     
                     <a href="#" onclick="syncEmails(); return false;" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 text-gray-700 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                         </svg>
                         <span>Emails synchronisieren</span>
                     </a>
-                    
+
+                    <a href="#" onclick="syncCalendar(); return false;" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 text-gray-700 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>Kalender synchronisieren</span>
+                    </a>
+
                     <div class="pt-4 border-t border-gray-200 mt-4">
                         <div id="sync-status" class="px-4 py-2 text-sm text-gray-500">
                             <!-- Sync status wird hier angezeigt -->
@@ -306,16 +313,16 @@
         
         async function syncEmails() {
             const statusEl = document.getElementById('sync-status');
-            statusEl.innerHTML = '<div class="flex items-center gap-2"><div class="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div><span>Synchronisiere...</span></div>';
-            
+            statusEl.innerHTML = '<div class="flex items-center gap-2"><div class="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div><span>Synchronisiere Emails...</span></div>';
+
             try {
                 const response = await fetch(`${API_BASE_URL}/sync/emails`, {
                     method: 'POST',
                     headers: { 'Authorization': 'Bearer test' }
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     statusEl.innerHTML = `<div class="text-green-600">✅ ${data.emails_synced} Emails synchronisiert!</div>`;
                     setTimeout(() => {
@@ -326,6 +333,31 @@
                 }
             } catch (error) {
                 statusEl.innerHTML = `<div class="text-red-600">❌ Fehler: ${error.message}</div>`;
+            }
+        }
+
+        async function syncCalendar() {
+            const statusEl = document.getElementById('sync-status');
+            statusEl.innerHTML = '<div class="flex items-center gap-2"><div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div><span>Synchronisiere Kalender...</span></div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/sync/calendar`, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer test' }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusEl.innerHTML = `<div class="text-green-600">✅ ${data.events_synced} Termine synchronisiert! (${data.upcoming_events} anstehend)</div>`;
+                    setTimeout(() => {
+                        statusEl.innerHTML = '';
+                    }, 4000);
+                } else {
+                    throw new Error(data.detail || 'Sync failed');
+                }
+            } catch (error) {
+                statusEl.innerHTML = `<div class="text-red-red">❌ Fehler: ${error.message}</div>`;
             }
         }
 
