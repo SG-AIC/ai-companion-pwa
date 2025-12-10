@@ -114,13 +114,30 @@
                     </div>
                 </div>
                 
-                <!-- Add Account Button -->
-                <button onclick="addAccount()" class="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50 transition-all flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg>
-                    <span class="font-medium">Account hinzufügen</span>
-                </button>
+                <!-- Add Account Section -->
+                <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+                    <h3 class="font-medium text-gray-900 mb-3 text-center">Account hinzufügen</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <!-- Microsoft 365 Button -->
+                        <button onclick="addMicrosoftAccount()" class="py-3 px-4 border-2 border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all flex flex-col items-center gap-2">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24">
+                                <path fill="#F25022" d="M1 1h10v10H1z"/>
+                                <path fill="#00A4EF" d="M1 13h10v10H1z"/>
+                                <path fill="#7FBA00" d="M13 1h10v10H13z"/>
+                                <path fill="#FFB900" d="M13 13h10v10H13z"/>
+                            </svg>
+                            <span class="text-sm font-medium text-gray-700">Microsoft 365</span>
+                        </button>
+
+                        <!-- Gmail Button -->
+                        <button onclick="addGoogleAccount()" class="py-3 px-4 border-2 border-gray-200 rounded-xl hover:border-red-400 hover:bg-red-50 transition-all flex flex-col items-center gap-2">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24">
+                                <path fill="#EA4335" d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/>
+                            </svg>
+                            <span class="text-sm font-medium text-gray-700">Gmail</span>
+                        </button>
+                    </div>
+                </div>
                 
             </div>
         </div>
@@ -264,24 +281,38 @@
         
         function renderAccountCard(account) {
             const tokenStatus = getTokenStatus(account);
-            const initial = account.email.charAt(0).toUpperCase();
-            
+            const isGoogle = account.type === 'google';
+            const providerIcon = isGoogle ? `
+                <svg class="w-6 h-6" viewBox="0 0 24 24">
+                    <path fill="#EA4335" d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/>
+                </svg>
+            ` : `
+                <svg class="w-6 h-6" viewBox="0 0 24 24">
+                    <path fill="#F25022" d="M1 1h10v10H1z"/>
+                    <path fill="#00A4EF" d="M1 13h10v10H1z"/>
+                    <path fill="#7FBA00" d="M13 1h10v10H13z"/>
+                    <path fill="#FFB900" d="M13 13h10v10H13z"/>
+                </svg>
+            `;
+            const providerName = isGoogle ? 'Gmail' : 'Microsoft 365';
+            const avatarGradient = isGoogle ? 'from-red-400 to-orange-400' : 'from-purple-400 to-blue-400';
+
             return `
                 <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden fade-in">
                     <!-- Header with status -->
                     <div class="p-4 flex items-center gap-4">
-                        <!-- Avatar -->
-                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-white text-lg font-bold">
-                            ${initial}
+                        <!-- Avatar with Provider Icon -->
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br ${avatarGradient} flex items-center justify-center">
+                            ${providerIcon}
                         </div>
-                        
+
                         <!-- Info -->
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2">
                                 <h3 class="font-semibold text-gray-900 truncate">${escapeHtml(account.email)}</h3>
                                 ${account.is_primary ? '<span class="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">Haupt</span>' : ''}
                             </div>
-                            <p class="text-sm text-gray-500">${escapeHtml(account.name || account.type)}</p>
+                            <p class="text-sm text-gray-500">${providerName}</p>
                         </div>
                         
                         <!-- Token Status Badge -->
@@ -432,23 +463,45 @@
         // ============================================================================
         // ACCOUNT ACTIONS
         // ============================================================================
-        
-        async function addAccount() {
+
+        async function addMicrosoftAccount() {
             try {
                 const response = await fetch(`${API_BASE_URL}/accounts/add`, {
                     method: 'POST',
                     headers: { 'Authorization': 'Bearer test' }
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.auth_url) {
                     window.location.href = data.auth_url;
                 }
             } catch (error) {
-                console.error('Error adding account:', error);
-                alert('Fehler beim Hinzufügen des Accounts');
+                console.error('Error adding Microsoft account:', error);
+                alert('Fehler beim Hinzufügen des Microsoft Accounts');
             }
+        }
+
+        async function addGoogleAccount() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/google/login`);
+
+                const data = await response.json();
+
+                if (data.auth_url) {
+                    window.location.href = data.auth_url;
+                } else if (data.detail) {
+                    alert('Google OAuth nicht konfiguriert: ' + data.detail);
+                }
+            } catch (error) {
+                console.error('Error adding Google account:', error);
+                alert('Fehler beim Hinzufügen des Gmail Accounts');
+            }
+        }
+
+        // Legacy function for backwards compatibility
+        async function addAccount() {
+            addMicrosoftAccount();
         }
         
         async function reconnectAccount(accountId) {
