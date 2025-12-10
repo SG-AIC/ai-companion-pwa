@@ -320,21 +320,36 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    mode: 'cors',
+                    credentials: 'include'
                 });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }));
+                    throw new Error(errorData.detail || `Sync failed with status ${response.status}`);
+                }
 
                 const data = await response.json();
 
-                if (response.ok) {
-                    statusEl.innerHTML = `<div class="text-green-600">✅ ${data.emails_synced} Emails synchronisiert!</div>`;
-                    setTimeout(() => {
-                        statusEl.innerHTML = '';
-                    }, 3000);
-                } else {
-                    throw new Error(data.detail || 'Sync failed');
-                }
+                statusEl.innerHTML = `<div class="text-green-600">✅ ${data.emails_synced} Emails synchronisiert!</div>`;
+                setTimeout(() => {
+                    statusEl.innerHTML = '';
+                }, 3000);
             } catch (error) {
-                statusEl.innerHTML = `<div class="text-red-600">❌ Fehler: ${error.message}</div>`;
+                console.error('Sync error:', error);
+                let errorMsg = error.message;
+
+                if (error.message.includes('Failed to fetch')) {
+                    errorMsg = 'Backend nicht erreichbar. Bitte prüfe ob das Backend läuft.';
+                } else if (error.message.includes('authenticate first')) {
+                    errorMsg = 'Bitte erst bei Microsoft 365 anmelden!';
+                }
+
+                statusEl.innerHTML = `<div class="text-red-600">❌ ${errorMsg}</div>`;
+                setTimeout(() => {
+                    statusEl.innerHTML = '';
+                }, 5000);
             }
         }
 
@@ -347,21 +362,36 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    mode: 'cors',
+                    credentials: 'include'
                 });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }));
+                    throw new Error(errorData.detail || `Sync failed with status ${response.status}`);
+                }
 
                 const data = await response.json();
 
-                if (response.ok) {
-                    statusEl.innerHTML = `<div class="text-green-600">✅ ${data.events_synced} Termine synchronisiert! (${data.upcoming_events} anstehend)</div>`;
-                    setTimeout(() => {
-                        statusEl.innerHTML = '';
-                    }, 4000);
-                } else {
-                    throw new Error(data.detail || 'Sync failed');
-                }
+                statusEl.innerHTML = `<div class="text-green-600">✅ ${data.events_synced} Termine synchronisiert! (${data.upcoming_events} anstehend)</div>`;
+                setTimeout(() => {
+                    statusEl.innerHTML = '';
+                }, 4000);
             } catch (error) {
-                statusEl.innerHTML = `<div class="text-red-red">❌ Fehler: ${error.message}</div>`;
+                console.error('Calendar sync error:', error);
+                let errorMsg = error.message;
+
+                if (error.message.includes('Failed to fetch')) {
+                    errorMsg = 'Backend nicht erreichbar. Bitte prüfe ob das Backend läuft.';
+                } else if (error.message.includes('authenticate first')) {
+                    errorMsg = 'Bitte erst bei Microsoft 365 anmelden!';
+                }
+
+                statusEl.innerHTML = `<div class="text-red-600">❌ ${errorMsg}</div>`;
+                setTimeout(() => {
+                    statusEl.innerHTML = '';
+                }, 5000);
             }
         }
 
