@@ -181,6 +181,25 @@
         // LOAD ACCOUNTS
         // ============================================================================
         
+        // Store email stats globally
+        let emailStats = {};
+
+        async function loadEmailStats() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/email-stats`);
+                if (response.ok) {
+                    const data = await response.json();
+                    // Create a map by email address
+                    emailStats = {};
+                    for (const stat of data.accounts) {
+                        emailStats[stat.account_email] = stat;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading email stats:', error);
+            }
+        }
+
         async function loadAccounts() {
             const container = document.getElementById('accounts-list');
             container.innerHTML = `
@@ -188,16 +207,19 @@
                     <div class="w-8 h-8 border-3 border-purple-500 border-t-transparent rounded-full animate-spin" style="border-width: 3px;"></div>
                 </div>
             `;
-            
+
             try {
+                // Load email stats first
+                await loadEmailStats();
+
                 const response = await fetch(`${API_BASE_URL}/accounts`, {
                     headers: { 'Authorization': 'Bearer test' }
                 });
-                
+
                 if (!response.ok) {
                     throw new Error('Failed to load accounts');
                 }
-                
+
                 const data = await response.json();
                 const accounts = data.accounts || [];
                 
@@ -268,6 +290,9 @@
                         </div>
                     </div>
                     
+                    <!-- Email Statistics -->
+                    ${renderEmailStats(account.email)}
+
                     <!-- Token Details -->
                     <div class="px-4 pb-3 border-t border-gray-100 pt-3">
                         <div class="flex items-center justify-between text-sm">
@@ -342,16 +367,66 @@
         }
         
         function renderTokenBadge(status) {
-            const bgClass = status.valid 
+            const bgClass = status.valid
                 ? (status.class === 'token-warning' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700')
                 : 'bg-red-100 text-red-700';
-            
+
             return `
                 <span class="px-3 py-1 rounded-full text-xs font-medium ${bgClass} flex items-center gap-1">
                     <span>${status.icon}</span>
                     <span>${status.valid ? 'Verbunden' : 'Abgelaufen'}</span>
                 </span>
             `;
+        }
+
+        function renderEmailStats(accountEmail) {
+            const stats = emailStats[accountEmail];
+            if (!stats) {
+                return `
+                    <div class="px-4 py-3 bg-gray-50 border-t border-gray-100">
+                        <div class="text-sm text-gray-400 text-center">Keine Email-Statistiken verfügbar</div>
+                    </div>
+                `;
+            }
+
+            const latestEmail = stats.latest_email;
+
+            return `
+                <div class="px-4 py-3 bg-gradient-to-r from-blue-50 to-purple-50 border-t border-gray-100">
+                    <div class="grid grid-cols-2 gap-4 mb-3">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-purple-600">${stats.total_emails}</div>
+                            <div class="text-xs text-gray-500">Emails gespeichert</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-600">${stats.emails_with_full_body}</div>
+                            <div class="text-xs text-gray-500">Mit vollem Body</div>
+                        </div>
+                    </div>
+                    ${latestEmail ? `
+                        <div class="pt-2 border-t border-gray-200">
+                            <div class="text-xs text-gray-500 mb-1">Letzte Email:</div>
+                            <div class="text-sm font-medium text-gray-700 truncate" title="${escapeHtml(latestEmail.subject)}">${escapeHtml(latestEmail.subject)}</div>
+                            <div class="flex items-center justify-between text-xs text-gray-500 mt-1">
+                                <span class="truncate" title="${escapeHtml(latestEmail.sender)}">${escapeHtml(latestEmail.sender)}</span>
+                                <span class="flex-shrink-0 ml-2">${formatDateTime(latestEmail.received_date)}</span>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function formatDateTime(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
         }
         
         // ============================================================================
