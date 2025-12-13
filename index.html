@@ -458,8 +458,27 @@
                 html += '<p class="text-xs text-gray-500 mb-2 font-medium">📎 Quellen:</p>';
                 html += '<div class="space-y-1">';
                 sources.forEach(source => {
-                    if (source.type === 'google_docs') {
-                        // Google Docs source
+                    if (source.type === 'google_drive') {
+                        // Google Drive source (Docs, Sheets, Slides)
+                        const files = source.file_titles || [];
+                        const parts = [];
+                        if (source.docs_count > 0) parts.push(`${source.docs_count} Docs`);
+                        if (source.sheets_count > 0) parts.push(`${source.sheets_count} Sheets`);
+                        if (source.slides_count > 0) parts.push(`${source.slides_count} Slides`);
+                        const countLabel = parts.join(', ') || `${source.total_count} Dateien`;
+
+                        // Format file titles with icons
+                        const fileLabels = files.slice(0, 3).map(f => {
+                            const icon = f.type === 'spreadsheet' ? '📊' : (f.type === 'presentation' ? '📽️' : '📄');
+                            return `${icon} ${escapeHtml(f.title)}`;
+                        }).join(', ');
+
+                        html += `<div class="text-xs text-gray-600 flex items-start gap-1">
+                            <span>📁</span>
+                            <span>Google Drive (${countLabel}): ${fileLabels}${files.length > 3 ? '...' : ''}</span>
+                        </div>`;
+                    } else if (source.type === 'google_docs') {
+                        // Legacy: Google Docs only source
                         const titles = source.doc_titles || [];
                         html += `<div class="text-xs text-gray-600 flex items-start gap-1">
                             <span>📄</span>
