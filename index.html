@@ -458,10 +458,38 @@
                 html += '<p class="text-xs text-gray-500 mb-2 font-medium">📎 Quellen:</p>';
                 html += '<div class="space-y-1">';
                 sources.forEach(source => {
-                    html += `<div class="text-xs text-gray-600 flex items-start gap-1">
-                        <span>📧</span>
-                        <span>${escapeHtml(source.subject)}</span>
-                    </div>`;
+                    if (source.type === 'google_docs') {
+                        // Google Docs source
+                        const titles = source.doc_titles || [];
+                        html += `<div class="text-xs text-gray-600 flex items-start gap-1">
+                            <span>📄</span>
+                            <span>${source.docs_count} Google Docs: ${titles.slice(0, 3).map(t => escapeHtml(t)).join(', ')}${titles.length > 3 ? '...' : ''}</span>
+                        </div>`;
+                    } else if (source.type === 'calendar') {
+                        // Calendar source
+                        html += `<div class="text-xs text-gray-600 flex items-start gap-1">
+                            <span>📅</span>
+                            <span>${source.today_events || 0} Termine heute, ${source.upcoming_events || 0} kommende</span>
+                        </div>`;
+                    } else if (source.type === 'email' && source.subject) {
+                        // Email source
+                        html += `<div class="text-xs text-gray-600 flex items-start gap-1">
+                            <span>📧</span>
+                            <span>${escapeHtml(source.subject)}</span>
+                        </div>`;
+                    } else if (source.type === 'conversation_history') {
+                        // Conversation history
+                        html += `<div class="text-xs text-gray-600 flex items-start gap-1">
+                            <span>💬</span>
+                            <span>${source.messages_count || 0} frühere Nachrichten</span>
+                        </div>`;
+                    } else if (source.type === 'memory') {
+                        // Memory/Facts
+                        html += `<div class="text-xs text-gray-600 flex items-start gap-1">
+                            <span>🧠</span>
+                            <span>${source.facts_count || 0} gespeicherte Fakten</span>
+                        </div>`;
+                    }
                 });
                 html += '</div></div>';
             }
