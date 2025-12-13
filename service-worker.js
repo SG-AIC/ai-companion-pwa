@@ -1,5 +1,5 @@
 // Service Worker für AI Companion PWA
-const CACHE_NAME = 'ai-companion-v3';
+const CACHE_NAME = 'ai-companion-v4';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -44,9 +44,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
-  
+
+  // Skip non-http(s) requests (chrome-extension://, etc.)
+  if (!event.request.url.startsWith('http')) return;
+
   // Skip API calls (always fetch fresh)
-  if (event.request.url.includes('/api/') || 
+  if (event.request.url.includes('/api/') ||
       event.request.url.includes('railway.app')) {
     return;
   }
@@ -54,15 +57,15 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Clone the response
-        const responseToCache = response.clone();
-        
-        // Cache the fetched response
-        caches.open(CACHE_NAME)
-          .then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-        
+        // Only cache successful responses with valid schemes
+        if (response.ok && event.request.url.startsWith('http')) {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME)
+            .then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+        }
+
         return response;
       })
       .catch(() => {

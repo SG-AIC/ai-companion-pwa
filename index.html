@@ -287,6 +287,12 @@
             return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
         }
 
+        function isInStandaloneMode() {
+            return (window.matchMedia('(display-mode: standalone)').matches) ||
+                   (window.navigator.standalone) ||
+                   document.referrer.includes('android-app://');
+        }
+
         // ============================================================================
         // MENU FUNCTIONALITY
         // ============================================================================
