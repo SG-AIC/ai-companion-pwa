@@ -376,6 +376,12 @@
                                 <span class="flex items-center gap-1">
                                     ${account.sync_calendar ? '✅' : '❌'} Kalender
                                 </span>
+                                ${isGoogle ? `
+                                    <span class="flex items-center gap-1" title="${account.has_drive_access ? account.docs_count + ' Docs synchronisiert' : 'Docs-Sync ausstehend - bitte /sync/docs aufrufen'}">
+                                        ${account.has_drive_access ? '✅' : '⏳'} Drive
+                                        ${account.has_drive_access && account.docs_count > 0 ? `<span class="text-xs text-blue-500">(${account.docs_count})</span>` : ''}
+                                    </span>
+                                ` : ''}
                             </div>
                             <div class="text-xs text-gray-400">
                                 ${tokenStatus.text}
