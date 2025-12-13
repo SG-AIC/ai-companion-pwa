@@ -377,9 +377,9 @@
                                     ${account.sync_calendar ? '✅' : '❌'} Kalender
                                 </span>
                                 ${isGoogle ? `
-                                    <span class="flex items-center gap-1" title="${account.has_drive_access ? account.docs_count + ' Docs synchronisiert' : 'Docs-Sync ausstehend - bitte /sync/docs aufrufen'}">
+                                    <span class="flex items-center gap-1" title="${account.has_drive_access ? getDriveTooltip(account.drive_stats) : 'Drive-Sync ausstehend - bitte /sync/docs aufrufen'}">
                                         ${account.has_drive_access ? '✅' : '⏳'} Drive
-                                        ${account.has_drive_access && account.docs_count > 0 ? `<span class="text-xs text-blue-500">(${account.docs_count})</span>` : ''}
+                                        ${account.has_drive_access && account.drive_stats ? `<span class="text-xs text-blue-500">${getDriveStatsLabel(account.drive_stats)}</span>` : ''}
                                     </span>
                                 ` : ''}
                             </div>
@@ -418,9 +418,28 @@
         }
         
         // ============================================================================
+        // GOOGLE DRIVE STATS HELPERS
+        // ============================================================================
+
+        function getDriveStatsLabel(stats) {
+            if (!stats) return '';
+            const parts = [];
+            if (stats.docs > 0) parts.push(`${stats.docs} Docs`);
+            if (stats.sheets > 0) parts.push(`${stats.sheets} Sheets`);
+            if (stats.slides > 0) parts.push(`${stats.slides} Slides`);
+            if (parts.length === 0) return '';
+            return `(${parts.join(', ')})`;
+        }
+
+        function getDriveTooltip(stats) {
+            if (!stats) return 'Keine Dateien synchronisiert';
+            return `Synchronisiert: ${stats.docs} Google Docs, ${stats.sheets} Sheets, ${stats.slides} Slides`;
+        }
+
+        // ============================================================================
         // TOKEN STATUS HELPERS
         // ============================================================================
-        
+
         function getTokenStatus(account) {
             if (!account.token_expires_at) {
                 return { valid: false, class: 'token-expired', text: 'Nicht verbunden', icon: '❌' };
