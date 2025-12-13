@@ -23,38 +23,5 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["productivity", "lifestyle"],
-  "screenshots": [
-    {
-      "src": "/screenshot.png",
-      "sizes": "1170x2532",
-      "type": "image/png"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Neue Nachricht",
-      "short_name": "Chat",
-      "description": "Starte eine neue Conversation",
-      "url": "/#chat",
-      "icons": [
-        {
-          "src": "/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "Emails checken",
-      "short_name": "Emails",
-      "description": "Wichtige Emails anzeigen",
-      "url": "/#emails",
-      "icons": [
-        {
-          "src": "/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
-    }
-  ]
+  "categories": ["productivity", "lifestyle"]
 }

@@ -1,5 +1,5 @@
 // Service Worker für AI Companion PWA
-const CACHE_NAME = 'ai-companion-v2';
+const CACHE_NAME = 'ai-companion-v3';
 const urlsToCache = [
   '/',
   '/index.html',
