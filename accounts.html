@@ -281,7 +281,10 @@
 
                 const data = await response.json();
                 const accounts = data.accounts || [];
-                
+
+                // Cache accounts for sync function
+                window.cachedAccounts = accounts;
+
                 if (accounts.length === 0) {
                     container.innerHTML = `
                         <div class="text-center py-12">
@@ -604,29 +607,56 @@
                 <span>Synchronisiere...</span>
             `;
             btn.disabled = true;
-            
+
             try {
-                const response = await fetch(`${API_BASE_URL}/sync/emails?account_id=${accountId}`, {
+                // Find account type from cached data
+                const account = window.cachedAccounts?.find(a => a.id === accountId);
+                const isGoogle = account?.type === 'google';
+
+                // Sync emails first
+                const emailResponse = await fetch(`${API_BASE_URL}/sync/emails?account_id=${accountId}`, {
                     method: 'POST',
                     headers: { 'Authorization': 'Bearer test' }
                 });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    btn.innerHTML = `
-                        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        <span>${data.emails_synced} Emails</span>
-                    `;
-                    setTimeout(() => {
-                        btn.innerHTML = originalContent;
-                        btn.disabled = false;
-                    }, 2000);
-                } else {
-                    throw new Error(data.detail || 'Sync failed');
+                const emailData = await emailResponse.json();
+
+                let resultText = '';
+                if (emailResponse.ok) {
+                    resultText = `${emailData.emails_synced || 0} Emails`;
                 }
+
+                // For Google accounts, also sync Drive (Docs, Sheets, Slides)
+                if (isGoogle) {
+                    btn.innerHTML = `
+                        <div class="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                        <span>Drive sync...</span>
+                    `;
+
+                    const driveResponse = await fetch(`${API_BASE_URL}/sync/docs`, {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer test' }
+                    });
+                    const driveData = await driveResponse.json();
+
+                    if (driveResponse.ok && driveData.docs_synced > 0) {
+                        resultText += `, ${driveData.docs_synced} Drive`;
+                    }
+                }
+
+                btn.innerHTML = `
+                    <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span>${resultText || 'Synced'}</span>
+                `;
+
+                // Reload accounts to show updated counts
+                setTimeout(() => {
+                    loadAccounts();
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                }, 2000);
+
             } catch (error) {
                 console.error('Error syncing account:', error);
                 btn.innerHTML = `
